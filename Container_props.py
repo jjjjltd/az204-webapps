@@ -84,6 +84,13 @@ def blob_prep(cleanup):
         print(f"Lease state: {properties.lease.state}")
         print(f"Has immutability policy: {properties.has_immutability_policy}")
 
+        # Set Metadata using dictionary
+        container_meta = {
+            "doctype": "text_documents",
+            "category": "guidance"
+        }
+        container_client.set_container_metadata(container_meta)
+
         # Retrieve existing metadata, if desired
         metadata = container_client.get_container_properties().metadata
         print(f"Meta data items: {metadata.items}")
@@ -106,10 +113,6 @@ def blob_prep(cleanup):
             os.rmdir(local_path)
 
             print("Done")
-
-        container_client.get_properties(BlobServiceClient, container_name)
-        
-        return container_client
 
     except Exception as ex:
         print('Exception:')
