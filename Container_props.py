@@ -17,7 +17,7 @@ def housekeeping():
         print('Exception:')
         print(ex)
 
-def blob_prep():
+def blob_prep(cleanup):
     """ See Readme to understand how "Program reference 1" * 2 are combined here.  """
 
     housekeeping()
@@ -76,23 +76,45 @@ def blob_prep():
         with open(file=download_file_path, mode="wb") as download_file:
             download_file.write(container_client.download_blob(blob.name).readall())
 
-        # Clean up
-        print("\nPress the Enter key to begin clean up")
-        input()
+        #  Proving: Get Properties block
+        properties = container_client.get_container_properties()
 
-        print("Deleting blob container...")
-        container_client.delete_container()
+        print(f"Public access type: {properties.public_access}")
+        print(f"Lease status: {properties.lease.status}")
+        print(f"Lease state: {properties.lease.state}")
+        print(f"Has immutability policy: {properties.has_immutability_policy}")
 
-        print("Deleting the local source and downloaded files...")
-        os.remove(upload_file_path)
-        os.remove(download_file_path)
-        os.rmdir(local_path)
+        # Retrieve existing metadata, if desired
+        metadata = container_client.get_container_properties().metadata
+        print(f"Meta data items: {metadata.items}")
+        for k, v in metadata.items():
+            print(k, v)
 
-        print("Done")
+        #  End of:  Proving Get Properties block
 
+        if cleanup:
+            # Clean up
+            print("\nPress the Enter key to begin clean up")
+            input()
+
+            print("Deleting blob container...")
+            container_client.delete_container()
+
+            print("Deleting the local source and downloaded files...")
+            os.remove(upload_file_path)
+            os.remove(download_file_path)
+            os.rmdir(local_path)
+
+            print("Done")
+
+        container_client.get_properties(BlobServiceClient, container_name)
+        
+        return container_client
 
     except Exception as ex:
         print('Exception:')
         print(ex)
 
-blob_prep()
+
+cleanup = True
+container_client = blob_prep(cleanup)
